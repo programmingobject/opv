@@ -7,7 +7,7 @@
 import unittest
 
 
-from opv.objects import Object, items, keys, kind, prt, update, values
+from opv import Object, items, keys, kind, prt, update, values
 
 
 VALIDJSON = '{"test": "bla"}'

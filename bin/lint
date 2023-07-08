@@ -25,7 +25,7 @@ SKIP = [
         "***",
         "---",
         "Your code",
-        "bin/opr"
+        "bin/opv"
        ]
 
 

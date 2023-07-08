@@ -7,9 +7,10 @@ build-backend = "setuptools.build_meta"
 zip_safe = true
 include_package_data = true
 
+
 [project]
 name = "opv"
-description = "Object Programming Version"
+description = "clean namespace"
 version = "200"
 authors = [
     {name = "Bart Thate", email = "programmingobject@gmail.com" },
@@ -25,17 +26,30 @@ classifiers = [
               ]
 
 
+
+[project.scripts]
+my-script = "opv.__main__:main"
+
+
 [project.urls]
 "home" = "https://pypi.org/project/opv"
-"bugs" = "https://github.com/bthate/opv/issues"
-"source" = "https://github.com/bthate/opv"
+"bugs" = "https://github.com/programmingobject/opv/issues"
+"source" = "https://github.com/programmingobject/opv"
 
 
 [project.optional-dependencies]
 dev = []
 
+[tool.setuptools]
+script-files = ["bin/opv"]
+
+
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["opr*"]
+include = ["opv*"]
 exclude = ["tests*",]
 namespaces = false
+
+
+[tool.setuptools.package-data]
+"*" = ["bin/opv*"]
