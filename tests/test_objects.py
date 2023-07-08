@@ -109,10 +109,10 @@ class TestObject(unittest.TestCase):
         self.assertEqual(len(obj), 0)
 
     def test_module(self):
-        self.assertEqual(Object().__module__, "opv.objects")
+        self.assertEqual(Object().__module__, "opv")
 
     def test_kind(self):
-        self.assertEqual(kind(Object()), "opv.objects.Object")
+        self.assertEqual(kind(Object()), "opv.Object")
 
     def test_repr(self):
         self.assertTrue(update(Object(),

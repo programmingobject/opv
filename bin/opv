@@ -1,1 +1,161 @@
-python3 -m opv $* ;
+#!/usr/bin/env python3
+# This file is placed in the Public Domain.
+
+
+"clean namespace"
+
+
+# IMPORTS
+
+
+import os
+import sys
+
+
+from opv.objects import Object, Persist, files, find, prt, write
+
+
+# DEFINES
+
+
+Persist.workdir = os.path.expanduser("~/.opr")
+
+
+# CLASSES
+
+
+class Handler:
+
+    """commands binded to a function"""
+
+    cmds = {}
+
+    @staticmethod
+    def add(func):
+        """add a function"""
+        Handler.cmds[func.__name__] = func
+
+    @staticmethod
+    def handle(com):
+        # pylint: disable=W0718
+        """handle an command"""
+        func = Handler.cmds.get(com.cmd, None)
+        if func:
+            try:
+                func(com)
+            except Exception as ex:
+                print(ex.with_traceback(ex.__traceback__))
+
+
+class Log(Object):
+
+    "log objects"
+
+    def __init__(self):
+        super().__init__()
+        self.txt = ""
+
+    def gettxt(self):
+        """get log text"""
+        return self.txt
+
+    def settxt(self, txt):
+        """set log txt"""
+        self.txt = txt
+
+
+# UTILITY
+
+
+def parse(obj, txt):
+    """parse text for commands"""
+    obj.cmd = ""
+    obj.args = []
+    obj.gets = {}
+    obj.mod = ""
+    obj.opts = ""
+    obj.otxt = txt
+    obj.rest = ""
+    obj.sets = {}
+    for spli in txt.split():
+        if spli.startswith("-"):
+            try:
+                obj.index = int(spli[1:])
+            except ValueError:
+                obj.opts += spli[1:]
+            continue
+        if "=" in spli:
+            key, value = spli.split("=", maxsplit=1)
+            if key == "mod":
+                obj.mod += f",{value}"
+                continue
+            obj.sets[key] = value
+            continue
+        if "==" in spli:
+            key, value = spli.split("==", maxsplit=1)
+            obj.gets[key] = value
+            continue
+        if not obj.cmd:
+            obj.cmd = spli
+            continue
+        obj.args.append(spli)
+    obj.txt = obj.cmd
+    if obj.args:
+        obj.rest = str(" ".join(obj.args))
+        if obj.rest:
+            obj.txt += " " + obj.rest
+
+
+# COMMANDS
+
+
+def cmd(event):
+    """list commands"""
+    if event:
+        print(",".join(Handler.cmds))
+
+
+def fnd(event):
+    """locate objects"""
+    if not event.rest:
+        res = sorted([x.split('.')[-1].lower() for x in files()])
+        if res:
+            print(",".join(res))
+        return
+    otype = event.args[0]
+    nmr = 0
+    for obj in find(otype):
+        print(f"{nmr} {prt(obj)}")
+        nmr += 1
+
+
+def log(event):
+    """log text"""
+    if not event.rest:
+        nmr = 0
+        for obj in find('log'):
+            print(f"{nmr} {prt(obj)}")
+            nmr += 1
+        return
+    obj = Log()
+    obj.txt = event.rest
+    write(obj)
+    print('ok')
+
+
+# RUNTIME
+
+
+def main():
+    """runtime"""
+    hdl = Handler()
+    hdl.add(cmd)
+    hdl.add(fnd)
+    hdl.add(log)
+    com = Object()
+    parse(com, " ".join(sys.argv[1:]))
+    hdl.handle(com)
+
+
+if __name__ == "__main__":
+    main()

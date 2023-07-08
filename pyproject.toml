@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 [options]
 zip_safe = true
 include_package_data = true
-
+script_files = ["bin/opv",]
 
 [project]
 name = "opv"
@@ -25,10 +25,6 @@ classifiers = [
                'Topic :: Utilities'
               ]
 
-
-
-[project.scripts]
-my-script = "opv.__main__:main"
 
 
 [project.urls]
