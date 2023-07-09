@@ -9,7 +9,10 @@
 
 
 import os
+import queue
 import sys
+import threading
+import time
 
 
 from opv.objects import Object, Persist, files, find, prt, write
@@ -18,10 +21,46 @@ from opv.objects import Object, Persist, files, find, prt, write
 # DEFINES
 
 
+Cfg = Object()
 Persist.workdir = os.path.expanduser("~/.opr")
 
 
 # CLASSES
+
+
+class Event(Object):
+
+    """event occured"""
+
+    __slots__ = ('_ready',)
+
+    def __init__(self, *args, **kwargs):
+        Object.__init__(self, *args, **kwargs)
+        self._ready = threading.Event()
+        self.result = []
+        self.txt = ""
+
+    def parse(self):
+        """parse this event"""
+        parse(self, self.txt)
+
+    def ready(self) -> None:
+        """signal event as ready"""
+        self._ready.set()
+
+    def reply(self, txt) -> None:
+        """add text to result list"""
+        self.result.append(txt)
+
+    def show(self) -> None:
+        """display result list"""
+        for txt in self.result:
+            print(txt)
+
+    def wait(self) -> []:
+        """wait for event to finish and return result"""
+        self._ready.wait()
+        return self.result
 
 
 class Handler:
@@ -30,38 +69,60 @@ class Handler:
 
     cmds = {}
 
+    def __init__(self):
+        self.queue = queue.Queue()
+
     @staticmethod
     def add(func):
         """add a function"""
         Handler.cmds[func.__name__] = func
 
-    @staticmethod
-    def handle(com):
+    def event(self, txt) -> Object:
+        """create an event and set its origin to this handler"""
+        msg = Event()
+        msg.orig = repr(self)
+        msg.txt = txt
+        return msg
+
+    def handle(self, evt):
         # pylint: disable=W0718
-        """handle an command"""
-        func = Handler.cmds.get(com.cmd, None)
+        """handle an event"""
+        evt.parse()
+        func = Handler.cmds.get(evt.cmd, None)
         if func:
             try:
-                func(com)
+                func(evt)
+                evt.show()
             except Exception as ex:
-                print(ex.with_traceback(ex.__traceback__))
+                event.reply(ex.with_traceback(ex.__traceback__))
+        evt.ready()
+
+    def loop(self) -> None:
+        """loop handling events"""
+        while 1:
+            try:
+                self.handle(self.poll())
+            except (KeyboardInterrupt, EOFError):
+                print("")
+                break
+
+    def poll(self) -> Event:
+        """return an object to handle"""
+        return self.queue.get()
 
 
-class Log(Object):
+class Console(Handler):
 
-    "log objects"
+    "cli in a loop"
 
-    def __init__(self):
-        super().__init__()
-        self.txt = ""
+    def handle(self, evt):
+        "wait for events"
+        Handler.handle(self, evt)
+        evt.wait()
 
-    def gettxt(self):
-        """get log text"""
-        return self.txt
-
-    def settxt(self, txt):
-        """set log txt"""
-        self.txt = txt
+    def poll(self) -> Event:
+        "echo prompt"
+        return self.event(input("> "))
 
 
 # UTILITY
@@ -109,10 +170,26 @@ def parse(obj, txt):
 # COMMANDS
 
 
+class Log(Object):
+
+    "log objects"
+
+    def __init__(self):
+        super().__init__()
+        self.txt = ""
+
+    def gettxt(self):
+        """get log text"""
+        return self.txt
+
+    def settxt(self, txt):
+        """set log txt"""
+        self.txt = txt
+
+
 def cmd(event):
     """list commands"""
-    if event:
-        print(",".join(Handler.cmds))
+    event.reply(",".join(Handler.cmds))
 
 
 def fnd(event):
@@ -120,13 +197,15 @@ def fnd(event):
     if not event.rest:
         res = sorted([x.split('.')[-1].lower() for x in files()])
         if res:
-            print(",".join(res))
+            event.reply(",".join(res))
         return
     otype = event.args[0]
     nmr = 0
     for obj in find(otype):
-        print(f"{nmr} {prt(obj)}")
+        event.reply(f"{nmr} {prt(obj)}")
         nmr += 1
+    if not nmr:
+        event.reply("no result")
 
 
 def log(event):
@@ -134,13 +213,13 @@ def log(event):
     if not event.rest:
         nmr = 0
         for obj in find('log'):
-            print(f"{nmr} {prt(obj)}")
+            event.reply(f"{nmr} {prt(obj)}")
             nmr += 1
         return
     obj = Log()
     obj.txt = event.rest
     write(obj)
-    print('ok')
+    event.reply('ok')
 
 
 # RUNTIME
@@ -152,9 +231,12 @@ def main():
     hdl.add(cmd)
     hdl.add(fnd)
     hdl.add(log)
-    com = Object()
-    parse(com, " ".join(sys.argv[1:]))
-    hdl.handle(com)
+    parse(Cfg, " ".join(sys.argv[1:]))
+    if "c" in Cfg.opts:
+        csl = Console()
+        csl.loop()
+    else:
+        hdl.handle(Cfg)
 
 
 if __name__ == "__main__":
