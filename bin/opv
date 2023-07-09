@@ -15,7 +15,6 @@ import os
 import queue
 import sys
 import threading
-import time
 
 
 from opv.objects import Object, Persist, files, find, prt, write
@@ -93,7 +92,7 @@ class Handler:
                 func(evt)
                 evt.show()
             except Exception as ex:
-                event.reply(ex.with_traceback(ex.__traceback__))
+                evt.reply(ex.with_traceback(ex.__traceback__))
         evt.ready()
 
     def loop(self) -> None:
