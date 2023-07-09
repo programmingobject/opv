@@ -5,6 +5,9 @@
 "clean namespace"
 
 
+__author__ = "Bart Thate <programmingobject@gmail.com>"
+
+
 # IMPORTS
 
 
@@ -39,10 +42,6 @@ class Event(Object):
         self._ready = threading.Event()
         self.result = []
         self.txt = ""
-
-    def parse(self):
-        """parse this event"""
-        parse(self, self.txt)
 
     def ready(self) -> None:
         """signal event as ready"""
@@ -87,7 +86,7 @@ class Handler:
     def handle(self, evt):
         # pylint: disable=W0718
         """handle an event"""
-        evt.parse()
+        parse(evt, evt.txt)
         func = Handler.cmds.get(evt.cmd, None)
         if func:
             try:
@@ -236,7 +235,8 @@ def main():
         csl = Console()
         csl.loop()
     else:
-        hdl.handle(Cfg)
+        evt = hdl.event(Cfg.otxt)
+        hdl.handle(evt)
 
 
 if __name__ == "__main__":
