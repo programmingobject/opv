@@ -11,7 +11,7 @@ import unittest
 sys.path.insert(0, "..")
 
 
-from opv import Object, items, keys, kind, prt, update, values
+from opv.objects import Object, items, keys, kind, prt, update, values
 
 
 
