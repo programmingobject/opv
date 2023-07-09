@@ -38,13 +38,8 @@ class Event(Object):
 
     def __init__(self, *args, **kwargs):
         Object.__init__(self, *args, **kwargs)
-        self._ready = threading.Event()
         self.result = []
         self.txt = ""
-
-    def ready(self) -> None:
-        """signal event as ready"""
-        self._ready.set()
 
     def reply(self, txt) -> None:
         """add text to result list"""
@@ -54,11 +49,6 @@ class Event(Object):
         """display result list"""
         for txt in self.result:
             print(txt)
-
-    def wait(self) -> []:
-        """wait for event to finish and return result"""
-        self._ready.wait()
-        return self.result
 
 
 class Handler:
@@ -75,25 +65,14 @@ class Handler:
         """add a function"""
         Handler.cmds[func.__name__] = func
 
-    def event(self, txt) -> Object:
-        """create an event and set its origin to this handler"""
-        msg = Event()
-        msg.orig = repr(self)
-        msg.txt = txt
-        return msg
-
     def handle(self, evt):
-        # pylint: disable=W0718
         """handle an event"""
-        parse(evt, evt.txt)
-        func = Handler.cmds.get(evt.cmd, None)
-        if func:
-            try:
+        if "txt" in evt:
+            parse(evt, evt.txt)
+            func = Handler.cmds.get(evt.cmd, None)
+            if func:
                 func(evt)
                 evt.show()
-            except Exception as ex:
-                evt.reply(ex.with_traceback(ex.__traceback__))
-        evt.ready()
 
     def loop(self) -> None:
         """loop handling events"""
@@ -111,16 +90,13 @@ class Handler:
 
 class Console(Handler):
 
-    "cli in a loop"
-
-    def handle(self, evt):
-        "wait for events"
-        Handler.handle(self, evt)
-        evt.wait()
+    """cli in a loop"""
 
     def poll(self) -> Event:
-        "echo prompt"
-        return self.event(input("> "))
+        """echo prompt"""
+        evt = Event()
+        evt.txt = input("> ")
+        return evt
 
 
 # UTILITY
@@ -170,7 +146,7 @@ def parse(obj, txt):
 
 class Log(Object):
 
-    "log objects"
+    """log objects"""
 
     def __init__(self):
         super().__init__()
@@ -225,11 +201,11 @@ def log(event):
 
 def main():
     """runtime"""
+    parse(Cfg, " ".join(sys.argv[1:]))
     hdl = Handler()
     hdl.add(cmd)
     hdl.add(fnd)
     hdl.add(log)
-    parse(Cfg, " ".join(sys.argv[1:]))
     if "c" in Cfg.opts:
         csl = Console()
         csl.loop()
