@@ -4,10 +4,15 @@
 # pylama: ignore=E402
 
 
+import sys
 import unittest
 
 
+sys.path.insert(0, "..")
+
+
 from opv import Object, items, keys, kind, prt, update, values
+
 
 
 VALIDJSON = '{"test": "bla"}'
