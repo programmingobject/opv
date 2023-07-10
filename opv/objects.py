@@ -28,12 +28,16 @@ def __dir__():
             'Persist',
             'Object',
             'copy',
+            'dump',
+            'dumps',
             'edit',
             'find',
             'ident',
             'items',
             'keys',
             'kind',
+            'load',
+            'loads',
             'last',
             'prt',
             'read',
@@ -294,7 +298,9 @@ def load(fpt, *args, **kw) :
 
 def loads(string, *args, **kw):
     """load object from string"""
-    return json.loads(string, *args, cls=ObjectDecoder, **kw)
+    res = json.loads(string, *args, cls=ObjectDecoder, **kw)
+    print(res)
+    return res
 
 
 # ENCODER

@@ -11,7 +11,7 @@ import unittest
 sys.path.insert(0, "..")
 
 
-from opv.objects import Object, items, keys, kind, prt, update, values
+from opv.objects import *
 
 
 
@@ -182,3 +182,18 @@ class TestObject(unittest.TestCase):
                 "value",
             ],
         )
+
+    def test_dumps(self):
+        o = Object()
+        o.o = Object()
+        o.o.a = "b"
+        res = dumps(o)
+        self.assertEqual(res, '{"o": {"a": "b"}}')
+
+    def test_loads(self):
+        o = Object()
+        o.o = Object()
+        o.o.a = "b"
+        res = dumps(o)
+        oo = loads(res)
+        self.assertEqual(o.o.a, "b")

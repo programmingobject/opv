@@ -9,6 +9,7 @@
 
 
 import os
+import subprocess
 import sys
 
 
@@ -22,6 +23,23 @@ def popen(txt):
     for line in os.popen(txt).readlines():
         print(line.rstrip())
         sys.stdout.flush()
+
+
+def popen(txt):
+    "run in popen"
+    print("\n" + txt +"\n")
+    with subprocess.Popen(
+                           txt.split(),
+                           stdin=sys.stdin,
+                           stdout=sys.stdout,
+                           stderr=sys.stderr,
+                           close_fds=False,
+                           text=True
+                         ) as prock:
+        prock.communicate()
+        prock.wait()
+
+
 
 
 # RUNTIME
