@@ -16,7 +16,7 @@ import sys
 # UTILITY
 
 
-def popen(txt):
+def popen2(txt):
     "run in popen"
     runtxt = "\n## " + txt +"\n"
     print(runtxt)

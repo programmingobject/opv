@@ -1,6 +1,6 @@
 # This file is placed in the Public Domain.
 #
-# pylint: disable=C0114,C0115,C0116,W0703,E1101,C0413,C2801,R0904
+# pylint: disable=C0114,C0115,C0116,W0703,E1101,C0413,C2801,R0904,W0401,W0614
 # pylama: ignore=E402
 
 
@@ -184,16 +184,16 @@ class TestObject(unittest.TestCase):
         )
 
     def test_dumps(self):
-        o = Object()
-        o.o = Object()
-        o.o.a = "b"
-        res = dumps(o)
+        ooo = Object()
+        ooo.o = Object()
+        ooo.o.a = "b"
+        res = dumps(ooo)
         self.assertEqual(res, '{"o": {"a": "b"}}')
 
     def test_loads(self):
-        o = Object()
-        o.o = Object()
-        o.o.a = "b"
-        res = dumps(o)
-        oo = loads(res)
-        self.assertEqual(o.o.a, "b")
+        ooo = Object()
+        ooo.o = Object()
+        ooo.o.a = "b"
+        res = dumps(ooo)
+        ooo = loads(res)
+        self.assertEqual(ooo.o.a, "b")
