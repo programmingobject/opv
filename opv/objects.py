@@ -82,7 +82,7 @@ class Object:
         return self.__dict__.__delitem__(key)
 
     def __getattr__(self, key):
-        ""
+        """return default value if key is missing"""
         return self.__dict__.get(key, self.__default__)
 
     def __getitem__(self, key):
@@ -102,7 +102,6 @@ class Object:
         return self.__dict__.__setitem__(key, value)
 
     def __str__(self):
-        """return recursive json string"""
         return dumps(dumprec(self))
 
 
@@ -136,6 +135,8 @@ def dumprec(obj) -> str:
     update(ooo, obj)
     oooo = type(obj)()
     for key, value in items(ooo):
+        if key == "__kind__":
+            continue
         if issubclass(type(value), Object):
             oooo[key] = dumprec(value)
             continue
@@ -316,6 +317,7 @@ class ObjectEncoder(json.JSONEncoder):
         if isinstance(o, dict):
             return o.items()
         if isinstance(o, Object):
+            o.__dict__["__kind__"] = kind(o)
             return vars(o)
         if isinstance(o, list):
             return iter(o)
@@ -471,8 +473,10 @@ def hook(otp) -> type:
 def hooked(obj) -> type:
     """return object from filename"""
     tpe = Object
-    if "__oid__" in dir(obj):
-        clz = obj.__oid__.split(os.sep, maxsplit=1)[0]
+    try:
+        print(obj.__kind__)
+        clz = obj.__kind__.split(os.sep, maxsplit=1)[0]
+        print(clz)
         splitted = clz.split(".")
         modname = ".".join(splitted[:1])
         mod = sys.modules.get(modname, None)
@@ -480,8 +484,15 @@ def hooked(obj) -> type:
             cls = getattr(mod, splitted[-1], None)
             if cls:
                 tpe = cls
+    except:
+        pass
+    print(tpe)
     ooo = tpe()
     copy(ooo, obj)
+    try:
+        del ooo["__kind__"]
+    except KeyError:
+        pass
     return ooo
 
 

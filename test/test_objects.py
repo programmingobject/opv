@@ -16,7 +16,7 @@ from opv.objects import *
 
 
 VALIDJSON = '{"test": "bla"}'
-
+VALIDJSON2 = '{"test": "bla", "__kind__": "opv.objects.Object"}'
 
 attrs2 = (
           '__class__',
@@ -83,7 +83,7 @@ class TestObject(unittest.TestCase):
 
     def test_format(self):
         obj = Object()
-        self.assertEqual(obj.__format__(""), "{}")
+        self.assertEqual(obj.__format__(""), '{"__kind__": "opv.objects.Object"}')
 
     def test_getattribute(self):
         obj = Object()
@@ -130,7 +130,7 @@ class TestObject(unittest.TestCase):
 
     def test_str(self):
         obj = Object()
-        self.assertEqual(str(obj), "{}")
+        self.assertEqual(str(obj), '{"__kind__": "opv.objects.Object"}')
 
     def test_printable(self):
         obj = Object()
@@ -188,7 +188,7 @@ class TestObject(unittest.TestCase):
         ooo.o = Object()
         ooo.o.a = "b"
         res = dumps(ooo)
-        self.assertEqual(res, '{"o": {"a": "b"}}')
+        self.assertEqual(res, '{"o": {"a": "b", "__kind__": "opv.objects.Object"}, "__kind__": "opv.objects.Object"}')
 
     def test_loads(self):
         ooo = Object()

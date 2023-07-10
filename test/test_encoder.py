@@ -10,8 +10,8 @@ import unittest
 from opv.objects  import Object, dumps
 
 
-VALIDJSON = '{"test": "bla"}'
-
+VALIDJSON2 = '{"test": "bla"}'
+VALIDJSON = '{"test": "bla", "__kind__": "opv.objects.Object"}'
 
 class TestEncoder(unittest.TestCase):
 
