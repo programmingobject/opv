@@ -282,9 +282,7 @@ class ObjectDecoder(json.JSONDecoder):
         val = json.JSONDecoder.decode(self, s)
         if not val:
             val = {}
-        obj = Object()
-        copy(obj, val)
-        return obj
+        return hooked(val)
 
     def raw_decode(self, s, idx=0):
         """do a indexed conversion"""
@@ -298,9 +296,8 @@ def load(fpt, *args, **kw) :
 
 def loads(string, *args, **kw):
     """load object from string"""
-    res = json.loads(string, *args, cls=ObjectDecoder, **kw)
-    print(res)
-    return res
+    kw["object_hook"] = hooked
+    return json.loads(string, *args, cls=ObjectDecoder, **kw)
 
 
 # ENCODER
@@ -469,6 +466,24 @@ def hook(otp) -> type:
     obj = Object()
     read(obj, otp)
     return obj
+
+
+def hooked(obj) -> type:
+    """return object from filename"""
+    tpe = Object
+    if "__oid__" in dir(obj):
+        clz = obj.__oid__.split(os.sep, maxsplit=1)[0]
+        splitted = clz.split(".")
+        modname = ".".join(splitted[:1])
+        mod = sys.modules.get(modname, None)
+        if mod:
+            cls = getattr(mod, splitted[-1], None)
+            if cls:
+                tpe = cls
+    ooo = tpe()
+    copy(ooo, obj)
+    return ooo
+
 
 def strip(pth) -> str:
     """strip path to ident part"""
