@@ -210,7 +210,8 @@ def main():
         csl = Console()
         csl.loop()
     else:
-        evt = hdl.event(Cfg.otxt)
+        evt = Event()
+        evt.txt = Cfg.otxt
         hdl.handle(evt)
 
 
